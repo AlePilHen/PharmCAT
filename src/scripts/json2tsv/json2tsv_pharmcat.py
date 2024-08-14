@@ -183,7 +183,13 @@ if __name__ == "__main__":
                     matcher_file, phenotyper_file = get_json_file_names(one_sample, m_matcher_jsons, m_phenotyper_jsons)
                     futures.append(e.submit(extract_pcat_json, matcher_file, phenotyper_file, m_genes, one_sample,
                                             allele_definition_references, args.guideline_source))
-                concurrent.futures.wait(futures, return_when=ALL_COMPLETED)
+                ## -- Added try statement here to catch errors -- ##
+                try:
+                    concurrent.futures.wait(futures, return_when=ALL_COMPLETED)
+                except IndexError as e:
+                    print(e)
+                    print("sample: ", one_sample)
+                ## ---------------------------------------------- ##
                 for future in futures:
                     tmp_results = future.result()
                     # concatenate temporary dictionary with the summary dictionary
