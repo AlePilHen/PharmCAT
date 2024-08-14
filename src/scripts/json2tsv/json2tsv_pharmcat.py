@@ -186,7 +186,7 @@ if __name__ == "__main__":
                 ## -- Added try statement here to catch errors -- ##
                 try:
                     concurrent.futures.wait(futures, return_when=ALL_COMPLETED)
-                except IndexError as e:
+                except Exception as e:
                     print(e)
                     print("sample: ", one_sample)
                 ## ---------------------------------------------- ##
