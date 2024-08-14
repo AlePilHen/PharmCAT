@@ -188,7 +188,9 @@ if __name__ == "__main__":
                     concurrent.futures.wait(futures, return_when=ALL_COMPLETED)
                 except Exception as e:
                     print(e)
-                    print("sample: ", one_sample)
+                    print("Sample: ", one_sample)
+                    print(f"Removing results for {one_sample} from result list") 
+                    futures = futures[:-1]
                 ## ---------------------------------------------- ##
                 for future in futures:
                     tmp_results = future.result()
