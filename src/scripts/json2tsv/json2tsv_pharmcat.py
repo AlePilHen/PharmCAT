@@ -183,15 +183,12 @@ if __name__ == "__main__":
                     matcher_file, phenotyper_file = get_json_file_names(one_sample, m_matcher_jsons, m_phenotyper_jsons)
                     futures.append(e.submit(extract_pcat_json, matcher_file, phenotyper_file, m_genes, one_sample,
                                             allele_definition_references, args.guideline_source))
-                ## -- Added try statement here to catch errors -- ##
-                try:
-                    concurrent.futures.wait(futures, return_when=ALL_COMPLETED)
-                except Exception as e:
-                    print(e)
-                    print("Sample: ", one_sample)
-                    print(f"Removing results for {one_sample} from result list") 
-                    futures = futures[:-1]
-                ## ---------------------------------------------- ##
+                concurrent.futures.wait(futures, return_when=ALL_COMPLETED)
+                
+                ## ---- REMOVE THOSE CASES WHERE AN ERROR OCCURED ---- ##
+                [futures.pop(i) for i,f in enumerate(futures) if f._exception]
+                ## --------------------------------------------------- ##
+                
                 for future in futures:
                     tmp_results = future.result()
                     # concatenate temporary dictionary with the summary dictionary
@@ -203,15 +200,21 @@ if __name__ == "__main__":
                 # get the matcher and phenotyper json names for the sample
                 matcher_file, phenotyper_file = get_json_file_names(one_sample, m_matcher_jsons, m_phenotyper_jsons)
 
-                # extract results for a sample
-                tmp_results: dict[str, list[str]] = extract_pcat_json(
-                    matcher_json=matcher_file,
-                    phenotyper_json=phenotyper_file,
-                    genes=m_genes,
-                    sample_id=one_sample,
-                    reference_genotypes=allele_definition_references,
-                    guideline_source=args.guideline_source
-                )
+                try:
+                    # extract results for a sample
+                    tmp_results: dict[str, list[str]] = extract_pcat_json(
+                        matcher_json=matcher_file,
+                        phenotyper_json=phenotyper_file,
+                        genes=m_genes,
+                        sample_id=one_sample,
+                        reference_genotypes=allele_definition_references,
+                        guideline_source=args.guideline_source
+                    )
+                except IndexError as e:
+                    print(e)
+                    print("Error occurred with sample: ", one_sample)
+                    print("This sample will be omitted")
+                    continue
 
                 # concatenate temporary dictionary with the summary dictionary
                 for key in summary_results:
